@@ -12,6 +12,11 @@
 
 <!-- Bootstrap core CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/svg.css">
+
+<script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/rgbcolor.js"></script> 
+<script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/canvg.js"></script>
+
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/queue.v1.min.js"></script> 
 <script src="http://d3js.org/topojson.v1.min.js"></script>
@@ -24,36 +29,7 @@
 </script>
 
 <!-- Custom styles for this template -->
-<style>
 
-.postcode_area {
-  fill: #AAA;
-}
-  
-.mesh {
-  fill: none;
-  stroke: #fff;
-  stroke-width: .5px;
-  stroke-linejoin: round;
-}
-
-.subunit-boundary {
-  fill: none;
-  stroke: rgb(8,48,107);
-  stroke-linejoin: round;
-}
-
-.q0-9 { fill:rgb(247,251,255); }
-.q1-9 { fill:rgb(222,235,247); }
-.q2-9 { fill:rgb(198,219,239); }
-.q3-9 { fill:rgb(158,202,225); }
-.q4-9 { fill:rgb(107,174,214); }
-.q5-9 { fill:rgb(66,146,198); }
-.q6-9 { fill:rgb(33,113,181); }
-.q7-9 { fill:rgb(8,81,156); }
-.q8-9 { fill:rgb(8,48,107); }
-
-</style>
 
 
 </head>
@@ -65,23 +41,23 @@
 
 		<div id="formAlert" class="alert alert-info hide">  
           <a class="close">×</a>  
-          <strong>Required!</strong> Please enter two columns of data and try again
+          <strong>Required!</strong> Please enter some data and try again
         </div>
 
-        <div class = "container">
+<!--         <div class = "container">
             <div class = "col-md-4">
                 Source Data
             </div>
             <div class = "col-md-8">
                 Choropleth
             </div>
-        </div>
+        </div> -->
 
 		
 
 			<div class="container">
                 <div class = "col-md-4">
-
+                    <h3>Source Data</h3>
                     <p>
                         <textarea class="form-control" rows="10" name="tsvTextArea" id="tsvTextArea"></textarea>
                     </p>
@@ -89,18 +65,21 @@
                     <p>
                         <button type="submit" class="btn btn-success" id="gen">Next</button>
                     </p>
-
-
                 </div>
+
                 <div class = "col-md-8">
+                    <h3>Choropleth</h3>
                     <p>
                         <div id = "here"></div>
                     </p>
-
-
+                    <p>
+                        <button type="submit" class="btn btn-success" id="dnld">Download</button>
+                    </p>
+                    <p>
+                      <div id="svgdataurl"></div>
+                      <canvas width="960" height="500" style="display:none" id="canvas"></canvas>
+                    </p>
                 </div>
-
-
 			</div>
 		
 	</div>
@@ -115,6 +94,11 @@
 		type="text/javascript"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+
+
+
+
 
 <script>
 d3.select("#gen").on("click", function(){
@@ -165,14 +149,9 @@ _.each(tsvData, function(d) {
 
 queue()
 	.defer(d3.json, "data/uk-postcodes.json")
-	// .defer(d3.csv, "data/postcode-data.csv", function(d) { dataByArea.set(d.id, d[columnName]);
-	// 			percentByArea.set(d.id, parseInt(100*parseFloat(d[columnName])) + '%')})
 	.await(ready);
 
 
-
-
-console.log(dataByArea.get("ZE"));
 
 function ready(error, uk) {
 	
@@ -201,6 +180,129 @@ d3.json("uk-postcodes.json", function(error, uk) { */
 };
 });
 
+</script>
+
+<script>
+// d3.select("#dnld").on("click", function(){
+//   var html = d3.select("svg")
+//         .attr("version", 1.1)
+//         .attr("xmlns", "http://www.w3.org/2000/svg")
+//         .node().parentNode.innerHTML;
+
+//   console.log(html);
+//   var imgsrc = 'data:image/svg+xml;base64,'+ btoa(html);
+//   var img = '<img src="'+imgsrc+'">'; 
+
+
+//   var canvas = document.querySelector("canvas"),
+//     context = canvas.getContext("2d");
+
+
+
+//   var image = new Image;
+//   image.src = imgsrc;
+//   image.onload = function() {
+//     context.drawImage(image, 0, 0);
+
+//     var canvasdata = canvas.toDataURL("image/png");
+
+//     var pngimg = '<img src="'+canvasdata+'">'; 
+//       d3.select("#pngdataurl").html(pngimg);
+
+//     var a = document.createElement("a");
+//     a.download = "sample.png";
+//     a.href = canvasdata;
+//     a.click();
+//   };
+
+// });
+function inlineAllStyles() {
+    var svg_style, selector, cssText;
+
+    for (var i = 0; i <= document.styleSheets.length - 1; i++) {
+        //loop through your stylesheets
+        if (document.styleSheets[i].href && document.styleSheets[i].href.indexOf('svg.css') != -1) {
+            //pull out the styles from the one you want to use
+            if (document.styleSheets[i].rules != undefined) {
+                svg_style = document.styleSheets[i].rules
+            } else {
+                svg_style = document.styleSheets[i].cssRules
+            }
+        }
+    }
+
+    if (svg_style != null && svg_style != undefined) {
+        for (var i = 0; i < svg_style.length; i++) {
+            if (svg_style[i].type == 1) {
+
+                selector = svg_style[i].selectorText;
+
+                styles = makeStyleObject(svg_style[i]);
+
+                // Apply the style directly to the elements that match the selctor
+                // (this requires to not have to deal with selector parsing)
+                d3.selectAll(selector).style(styles)
+            }
+        };
+    }
+}
+
+ function makeStyleObject(rule) {
+    var styleDec = rule.style;
+    var output = {};
+    var s;
+
+    for (s = 0; s < styleDec.length; s++) {
+        output[styleDec[s]] = styleDec[styleDec[s]];
+        if(styleDec[styleDec[s]] === undefined) {
+            //firefox being firefoxy
+            output[styleDec[s]] = styleDec.getPropertyValue(styleDec[s])
+        }
+    }
+
+    return output;
+}
+
+
+
+d3.select("#dnld").on("click", function(){
+    inlineAllStyles();
+
+    // var style = "\n"
+    // for (var i=0;i<document.styleSheets.length; i++) {
+    //   str = document.styleSheets[i].href.split("/");
+    //   if (str[str.length-1]=="svg.css"){
+    //     var rules = document.styleSheets[i].rules;
+    //     for (var j=0; j<rules.length;j++){
+    //       style += (rules[j].cssText + "\n");
+    //     }
+    //     break;
+    //   }
+    // }
+
+        var $container = $('#here');
+        // Canvg requires trimmed content
+
+
+    // $container.prepend("\n<style type='text/css'></style>");
+    // $container.find("style").html("\n<![CDATA[" + style + "]]>\n");
+        content = $container.html().trim(),
+        canvas = document.getElementById('canvas');
+
+
+    // Draw svg on canvas
+    canvg(canvas, content);
+
+    // Change img be SVG representation
+    var theImage = canvas.toDataURL('image/png');
+    //$('#svg-img').attr('src', theImage);
+
+    var a = document.createElement("a");
+    a.download = "sample.png";
+    a.href = theImage;
+    a.click();
+    //saveSvgAsPng(document.getElementById("here"), "diagram.png");
+  });
 </script>
 </body>
 </html>
