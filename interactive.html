@@ -83,7 +83,7 @@
                 <div class = "col-md-4">
 
                     <p>
-                        <textarea class="form-control" rows="3" name="matchItems" id="matchItems"></textarea>
+                        <textarea class="form-control" rows="3" name="tsvTextArea" id="tsvTextArea"></textarea>
                     </p>
 
                     <p>
@@ -118,6 +118,9 @@
 
 <script>
 d3.select("#gen").on("click", function(){
+
+//d3.select("#here").remove();
+
 var json = {};
 
 var areadata={};
@@ -153,12 +156,23 @@ function getURLParameter(name) {
 var columnName = getURLParameter("column");
 if(columnName === null) {columnName = "data";}
 
+var tsvText =  document.getElementById("tsvTextArea").value;
+var tsvData = d3.tsv.parse(tsvText);
+_.each(tsvData, function(d) {
+  dataByArea.set(d.id, d[columnName]);
+  percentByArea.set(d.id, parseInt(parseFloat(d[columnName])) + '%');
+});
+
 queue()
 	.defer(d3.json, "data/uk-postcodes.json")
-	.defer(d3.csv, "data/postcode-data.csv", function(d) { dataByArea.set(d.id, d[columnName]);
-				percentByArea.set(d.id, parseInt(100*parseFloat(d[columnName])) + '%')})
+	// .defer(d3.csv, "data/postcode-data.csv", function(d) { dataByArea.set(d.id, d[columnName]);
+	// 			percentByArea.set(d.id, parseInt(100*parseFloat(d[columnName])) + '%')})
 	.await(ready);
-	
+
+
+
+console.log(tsvText);
+
 function ready(error, uk) {
 	
 /* }
